@@ -2428,10 +2428,14 @@ PoolerLoop(void)
 					ereport(LOG,
 							(errcode(ERRCODE_CONNECTION_FAILURE), errmsg("pool manager failed to accept connection: %m")));
 					errno = saved_errno;
-					return;
+					if (saved_errno == EMFILE || saved_errno == ENFILE) {
+						 pg_usleep(100000L);
+					} else {
+						return;
+					}
+				} else {
+					agent_create(new_fd);
 				}
-
-				agent_create(new_fd);
 			}
 		}
 	}
